@@ -5,23 +5,29 @@ const dotenv = require('dotenv').config(),
     http = require('http'),
     host = process.env.APP_LOCALHOST,
     port = process.env.APP_PORT,
-     students = [{
+    students = [
+        {
+            id : "1",
             name: "Sonia",
             birth: "2019-14-05"
         },
-        {
+        {   
+            id : "2",
             name: "Antoine",
             birth: "2000-12-05"
         },
         {
+            id : "3",
             name: "Alice",
             birth: "1990-14-09"
         },
         {
+            id : "4",
             name: "Sophie",
             birth: "2001-10-02"
         },
         {
+            id : "5",
             name: "Bernard",
             birth: "1980-21-08"
         }
@@ -47,9 +53,10 @@ http.createServer(function (req, res) {
         let users = "<ul>";
         for (const {
                 name,
-                birth
+                birth,
+                id
             } of students) {
-            users += `<li>${name} <br> ${dayjs(birth).format("DD/MM/YYYY")}</li> <button type="remove" class="delete-btn">Supprimer</button>
+            users += `<li>${name} <br> ${dayjs(birth).format("DD/MM/YYYY")}</li> <button type="remove" class="delete-btn"><a href="/students?id="${id}"">Supprimer</a></button>
             `;
         }
         users += "</ul>";
@@ -69,15 +76,17 @@ http.createServer(function (req, res) {
           `); 
     }
 
+    /** Trial with JSON file */
     if (url === "list") {
 
         const json = JSON.parse(fs.readFileSync('./data/students.json', "utf-8"));
          let users = "<ul>";
         for (const {
                 name,
-                birth
+                birth,
+                id
             } of json.students) {
-            users += `<li>${name} <br> ${dayjs(birth).format("DD/MM/YYYY")}</li> <button type="remove" class="delete-btn">Supprimer</button>
+            users += `<li>${name} <br> ${dayjs(birth).format("DD/MM/YYYY")}</li> <button type="remove" class="delete-btn"><a href="students?id="${id}"">Supprimer</a></button>
             `.replace("\n", " ");
         }
         users += "</ul>"; 
@@ -111,17 +120,36 @@ http.createServer(function (req, res) {
 
         // On écoute maintenant la fin de l'envoi des données avec la méthode on et l'attribut end
         req.on("end", () => {
+            //const studentsList = JSON.parse(fs.readFileSync('./data/students.json', "utf-8"));
+            //console.log(studentsList)
+
             const arr = Buffer.concat(body).toString().split("&");
             const name = arr[0].split("=")[1];
             const birth = arr[1];
             //console.log(birth)
             //console.log(name)
 
+            newData = `
+            name: ${name},
+            birth:"${birth}, \n
+            `;
+            fs.appendFile('./data/students.json', newData, (err) => {
+            if(err) {
+                console.log(err)
+            }
+            else {
+                console.log("\nFile Contents of file after append:",
+                fs.readFileSync("./data/students.json", "utf8"));
+            }
+           }) 
+
+
+        /* PUSH METHOD WORKING
             if (name && birth) students.push({
                 name,
                 birth
-            });
-            // redirection le code 301 indique une redirection permamente
+            }); */
+
             res.writeHead(301, {
                 Location: `http://${host}:${port}`
             });
